@@ -37,7 +37,7 @@ $ docker-compose exec -w /usr/src/public/api php composer install
 How to run it?
 ==============
 - Open http://localhost:8080 url at some browser (Chrome, Firefox, etc).
-- For the Symfony api project open http://localhost:8080/api/public url.
+- For the Symfony api project open http://localhost:8080/api/public/ url.
 
 Contributors
 ============
