@@ -1,0 +1,46 @@
+version: '3.7'
+services:
+  mysql:
+    image: mysql:8.0.19
+    restart: on-failure
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_DATABASE=api_dev
+      - MYSQL_USER=db_user
+      - MYSQL_PASSWORD=db_password
+      - MYSQL_ROOT_PASSWORD=root
+  pgsql:
+    image: postgres:12.1-alpine
+    restart: on-failure
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=api_dev
+      - POSTGRES_USER=db_user
+      - POSTGRES_PASSWORD=db_password
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    restart: on-failure
+    volumes:
+      - './public/:/usr/src/public'
+    environment:
+      - SQLITE_DB_URL=${SQLITE_DB_URL:-sqlite:///%kernel.project_dir%/var/data.db}
+      - MYSQL_DB_URL=${MYSQL_DB_URL:-mysql://db_user:db_password@mysql:3306/api_dev?serverVersion=8.0.19}
+      - POSTGRES_DB_URL=${POSTGRES_DB_URL:-postgresql://db_user:db_password@pgsql:5432/api_dev?serverVersion=12.1&charset=utf8}
+    depends_on:
+      - mysql
+      - pgsql
+  nginx:
+    image: nginx:1.17.7-alpine
+    restart: on-failure
+    volumes:
+      - './docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro'
+      - './public/:/usr/src/public'
+    ports:
+      - '${NGINX_PORT:-8080}:80'
+    depends_on:
+      - php
